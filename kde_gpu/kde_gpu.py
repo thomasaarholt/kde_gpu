@@ -7,20 +7,7 @@ Created on Wed Aug 14 14:34:13 2019
 chen.chen.adl@gmail.com
 
 """
-import pyreadr
-import pandas as pd
-import numpy as np
 import cupy as cp
-import matplotlib.pyplot as plt
-import time
-#import statsmodels.api as sm
-#from IPython import embed
-
-#import tensorflow as tf
-#import tensorflow_probability as tfp
-
-#from scipy.stats import t
-
 
 def kde(dataset,bw_method='scott',weight=1):
     #
@@ -63,7 +50,6 @@ def kde(dataset,bw_method='scott',weight=1):
     else:
         h = bw_method
     
-    
     dataset = cp.asarray(dataset/h, dtype='float32').T
     dataset = cp.expand_dims(dataset,1)
     XX=cp.broadcast_to(dataset,(n,n))
@@ -82,7 +68,7 @@ def kde(dataset,bw_method='scott',weight=1):
     kernel = cp.asarray(weight, dtype='float32')
     kernel = cp.broadcast_to(kernel,(n,n))    
     kernel = kxx*kernel
-    kde = kernel.mean(0,keepdims=False)/h
+    kde = kernel.mean(0, keepdims=False)/h
     
     mempool.free_all_blocks()
     pinned_mempool.free_all_blocks()
@@ -207,9 +193,6 @@ def kernel_smoothing_ecdf_weighted(y,x,dampmin=1e-30,maxit=500,lam=0,bw_method='
         residual_rhs =  cp.absolute(dpt_constraint).mean() #calculate residual
         change = dpt_constraint*ddpt_constraint/(ddpt_constraint**2+damp)
         max_change = cp.absolute(change).max()
-        #mempool.free_all_blocks()
-        #print(pinned_mempool.n_free_blocks())
-        #pinned_mempool.free_all_blocks()        
         dpt_constraint = None
         ddpt_constraint = None
    
@@ -225,19 +208,14 @@ def kernel_smoothing_ecdf_weighted(y,x,dampmin=1e-30,maxit=500,lam=0,bw_method='
         #obj = cp.log(1+lam*xx+1e-4).sum()
         '''
         
-        #print(max_change)
-        #print(residual_rhs)
         if (residual_rhs_old>=residual_rhs):
             lam = lam - change   
             if ((whileii%20)==0): print(max_change,' ',residual_rhs,' ',damp,' ',lam.max(),lam.min(),' any NA ',cp.isnan(change).any())
             if (damp>dampmin): damp = damp/2
-            #damp = damp/2
             change = None
             
         elif (residual_rhs_old<residual_rhs) :
             damp = damp*4
-        #print(damp)               
-        #print(obj)
     residual_rhs = None   
    
     
